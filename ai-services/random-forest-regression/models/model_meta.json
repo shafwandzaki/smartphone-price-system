@@ -1,0 +1,70 @@
+{
+  "model_version": "rf-1.0.0+202611061935",
+  "trained_at": "2026-11-06T19:35:20",
+  "data_file": "dataset_harga.csv",
+  "data_sha256_12": "2c89ae20d5e3",
+  "data_info": {
+    "rows_raw": 103,
+    "rows_dropped_invalid": 0,
+    "rows_dropped_duplicate": 0,
+    "rows_clean": 103
+  },
+  "n_brands": 1,
+  "n_models": 33,
+  "numeric_features": [
+    "release_year",
+    "ram",
+    "storage",
+    "battery_capacity",
+    "original_price"
+  ],
+  "categorical_features": [
+    "model",
+    "processor_name"
+  ],
+  "metrics_holdout": {
+    "Baseline_rata2": {
+      "MAE": 6848033.081193186,
+      "RMSE": 9203696.53027446,
+      "R2": -0.17959912807078848,
+      "MAPE_%": 63.036391888078505
+    },
+    "LinearRegression": {
+      "MAE": 5180002.049723037,
+      "RMSE": 10856526.256264234,
+      "R2": -0.6413138569684671,
+      "MAPE_%": 32.835485481712304
+    },
+    "RandomForest": {
+      "MAE": 1305673.1222054916,
+      "RMSE": 2491403.830693506,
+      "R2": 0.9135633119760281,
+      "MAPE_%": 7.481315451268117
+    }
+  },
+  "metrics_cv_randomforest": {
+    "MAE": 1177239.9778732143,
+    "RMSE": 1787816.7311122036,
+    "R2": 0.9289897706016668,
+    "MAPE_%": 9.997199373531734
+  },
+  "feature_importance": {
+    "release_year": 0.3828179127608885,
+    "ram": 0.22011540046996073,
+    "battery_capacity": 0.12720758518085346,
+    "original_price": 0.11779720385590778,
+    "processor_name": 0.05752641935548195,
+    "model": 0.05282391883615556,
+    "storage": 0.041711559540752015
+  },
+  "best_params": {
+    "regressor__reg__n_estimators": 200,
+    "regressor__reg__min_samples_leaf": 1,
+    "regressor__reg__max_features": 0.5,
+    "regressor__reg__max_depth": null
+  },
+  "warnings": [
+    "Dataset belum memuat fitur kondisi/pemakaian (usia pakai, kesehatan baterai, kelengkapan, garansi). Model hanya membedakan varian, bukan kondisi unit.",
+    "Rata-rata satu varian (brand-model-storage) hanya punya satu harga. Skor evaluasi belum mencerminkan pemakaian nyata dan tidak layak untuk laporan."
+  ]
+}
