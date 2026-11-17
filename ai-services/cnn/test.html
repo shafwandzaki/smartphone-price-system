@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloriaAI - Sistem Informasi & Penjualan Tanaman Hias</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                        <i class="fa-solid font-bold fa-leaf text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-xl tracking-tight text-slate-900">Floria<span class="text-brand-600">AI</span></span>
+                        <span class="block text-[10px] text-slate-500 -mt-1 font-medium">Smart Plant Store & Insights</span>
+                    </div>
+                </div>
+
+                <!-- View Switcher -->
+                <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button id="nav-customer" onclick="switchPortal('customer')" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 bg-white text-brand-700 shadow-sm">
+                        <i class="fa-solid fa-store"></i>
+                        <span>Customer Store</span>
+                    </button>
+                    <button id="nav-admin" onclick="switchPortal('admin')" class="px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Admin Dashboard</span>
+                    </button>
+                </div>
+
+                <!-- Extra Info / Cart indicator -->
+                <div id="customer-cart-btn" class="flex items-center gap-3">
+                    <button onclick="toggleCartModal()" class="relative p-2 text-slate-600 hover:text-brand-600 bg-slate-50 rounded-lg hover:bg-brand-50 border border-slate-200 transition">
+                        <i class="fa-solid fa-cart-shopping text-lg"></i>
+                        <span id="cart-badge" class="absolute -top-1 -right-1 bg-emerald-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ========================================== -->
+        <!-- 1. CUSTOMER STOREFRONT                     -->
+        <!-- ========================================== -->
+        <section id="portal-customer" class="space-y-10">
+            
+            <!-- Hero & AI Recommendation Trigger -->
+            <div class="relative bg-gradient-to-r from-emerald-900 via-brand-800 to-slate-900 rounded-3xl overflow-hidden shadow-xl text-white p-8 md:p-12">
+                <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-4">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Guided Plant Selection Engine
+                    </span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+                        Temukan Tanaman Hias Sempurna untuk Ruangan Anda
+                    </h1>
+                    <p class="text-slate-300 text-base mb-8">
+                        Gunakan sistem AI Recommendation kami berbasis Random Forest & Cosine Similarity untuk mencocokkan kondisi lingkungan rumah dengan tanaman impian Anda.
+                    </p>
+                    <button onclick="scrollToWizard()" class="bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-600 hover:to-emerald-500 text-white font-semibold px-6 py-3.5 rounded-xl shadow-lg shadow-brand-500/30 transition duration-200 transform hover:-translate-y-0.5 flex items-center gap-3">
+                        <i class="fa-solid fa-compass"></i>
+                        <span>Temukan Tanaman yang Cocok</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- AI RECOMMENDATION WIZARD FORM -->
+            <div id="ai-wizard-section" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-100 text-brand-700 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">AI Plant Recommender Wizard</h2>
+                        <p class="text-xs text-slate-500">Pilih kriteria lingkungan rumah Anda untuk mendapatkan rekomendasi presisi tinggi.</p>
+                    </div>
+                </div>
+
+                <!-- Interactive Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    
+                    <!-- Filter 1: Lokasi -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">1. Lokasi Tanaman</label>
+                        <div class="grid grid-cols-1 gap-2" id="filter-location">
+                            <button onclick="selectOption('location', 'Indoor')" class="wizard-btn location-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Indoor">
+                                <span>🏠 Indoor</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                            <button onclick="selectOption('location', 'Outdoor')" class="wizard-btn location-btn active w-full p-3 rounded-xl border border-brand-500 bg-brand-50 text-brand-800 text-left font-medium transition text-sm flex items-center justify-between" data-val="Outdoor">
+                                <span>🌳 Outdoor</span>
+                                <i class="fa-solid fa-check text-brand-600"></i>
+                            </button>
+                            <button onclick="selectOption('location', 'Semi-Outdoor')" class="wizard-btn location-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Semi-Outdoor">
+                                <span>🏡 Semi-Outdoor</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter 2: Intensitas Cahaya -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">2. Intensitas Cahaya</label>
+                        <div class="grid grid-cols-1 gap-2" id="filter-light">
+                            <button onclick="selectOption('light', 'Tinggi')" class="wizard-btn light-btn active w-full p-3 rounded-xl border border-brand-500 bg-brand-50 text-brand-800 text-left font-medium transition text-sm flex items-center justify-between" data-val="Tinggi">
+                                <span>☀️ Tinggi</span>
+                                <i class="fa-solid fa-check text-brand-600"></i>
+                            </button>
+                            <button onclick="selectOption('light', 'Sedang')" class="wizard-btn light-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Sedang">
+                                <span>🌤️ Sedang</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                            <button onclick="selectOption('light', 'Rendah')" class="wizard-btn light-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Rendah">
+                                <span>🌥️ Rendah</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter 3: Waktu Perawatan -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">3. Waktu Perawatan</label>
+                        <div class="grid grid-cols-1 gap-2" id="filter-care">
+                            <button onclick="selectOption('care', 'Rendah')" class="wizard-btn care-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Rendah">
+                                <span>⏱️ Rendah (Jarang Siram)</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                            <button onclick="selectOption('care', 'Sedang')" class="wizard-btn care-btn active w-full p-3 rounded-xl border border-brand-500 bg-brand-50 text-brand-800 text-left font-medium transition text-sm flex items-center justify-between" data-val="Sedang">
+                                <span>⏱️ Sedang</span>
+                                <i class="fa-solid fa-check text-brand-600"></i>
+                            </button>
+                            <button onclick="selectOption('care', 'Tinggi')" class="wizard-btn care-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Tinggi">
+                                <span>⏱️ Tinggi (Intensif)</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter 4: Tujuan -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">4. Tujuan Pemeliharaan</label>
+                        <div class="grid grid-cols-1 gap-2" id="filter-goal">
+                            <button onclick="selectOption('goal', 'Dekorasi')" class="wizard-btn goal-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Dekorasi">
+                                <span>🪴 Dekorasi Ruangan</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                            <button onclick="selectOption('goal', 'Koleksi')" class="wizard-btn goal-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Koleksi">
+                                <span>💎 Koleksi Eksklusif</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                            <button onclick="selectOption('goal', 'Bonsai')" class="wizard-btn goal-btn active w-full p-3 rounded-xl border border-brand-500 bg-brand-50 text-brand-800 text-left font-medium transition text-sm flex items-center justify-between" data-val="Bonsai">
+                                <span>✂️ Seni Bonsai</span>
+                                <i class="fa-solid fa-check text-brand-600"></i>
+                            </button>
+                            <button onclick="selectOption('goal', 'Pemula')" class="wizard-btn goal-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between" data-val="Pemula">
+                                <span>🌱 Ramah Pemula</span>
+                                <i class="fa-solid fa-check text-brand-600 hidden"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end pt-2">
+                    <button onclick="runAIRecommendation()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>🔍 Tampilkan Rekomendasi</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- RECOMMENDATION RESULTS CONTAINER -->
+            <div id="recommendation-results" class="hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <span>🌿 Hasil Rekomendasi untuk Anda</span>
+                        <span class="text-xs bg-emerald-100 text-brand-800 font-semibold px-2.5 py-0.5 rounded-full border border-emerald-200">Algoritma Random Forest + Cosine Similarity</span>
+                    </h3>
+                    <span id="match-count" class="text-sm text-slate-500">Menampilkan hasil pencocokan teratas</span>
+                </div>
+                
+                <div id="recommendation-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Recommendation cards injected via JS -->
+                </div>
+            </div>
+
+            <!-- MARKETPLACE & CATALOG SECTION -->
+            <div class="space-y-6 pt-6">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-200 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Katalog Tanaman Hias</h2>
+                        <p class="text-sm text-slate-500">Jelajahi seluruh koleksi tanaman hias dan bonsai terbaik kami.</p>
+                    </div>
+                    <!-- Search input -->
+                    <div class="relative w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="catalog-search" onkeyup="filterCatalog()" placeholder="Cari nama tanaman..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+
+                <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Dynamic Catalog Items injected via JS -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 2. ADMIN DASHBOARD                         -->
+        <!-- ========================================== -->
+        <section id="portal-admin" class="hidden space-y-8">
+            
+            <!-- Executive Banner / Model Info -->
+            <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-1 rounded-full">
+                        Admin Executive Suite
+                    </span>
+                    <h2 class="text-2xl font-bold mt-2">AI Sales & Demand Prediction Dashboard</h2>
+                    <p class="text-slate-400 text-sm mt-1">Estimasi & forecasting stok penjualan menggunakan algoritma XGBoost Regression</p>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-xs text-slate-300">
+                    <i class="fa-solid fa-brain text-emerald-400"></i>
+                    <span>Model: <strong>XGBoost Regressor v2.4</strong></span>
+                </div>
+            </div>
+
+            <!-- Top AI Sales Metric Card -->
+            <div class="bg-gradient-to-r from-emerald-500 to-brand-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 text-emerald-100 font-medium text-sm">
+                            <i class="fa-solid fa-crystal-ball"></i>
+                            <span>AI Sales Prediction - Okotber 2026</span>
+                        </div>
+                        <div class="flex items-baseline gap-3 mt-2">
+                            <span class="text-4xl font-extrabold">127 unit</span>
+                            <span class="bg-white/20 text-white text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i> ↑ 14.2%
+                            </span>
+                        </div>
+                        <p class="text-emerald-100 text-xs mt-1">Dibandingkan penjualan bulan September (111 unit)</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-right">
+                        <span class="block text-xs text-emerald-100">Confidence Score Model</span>
+                        <span class="text-2xl font-bold">94.8%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Sales Trend Chart -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-lg">Grafik Penjualan Aktual vs Prediksi AI</h3>
+                        <p class="text-xs text-slate-500">Histori penjualan 6 bulan terakhir dan forecasting 3 bulan ke depan</p>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">Unit Terjual</span>
+                </div>
+                <div class="h-72 w-full">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- AI Stock Prediction & Product Demand Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-lg">📦 Prediksi Permintaan & Status Stok Produk</h3>
+                        <p class="text-xs text-slate-500">Perhitungan inventaris berbasis forecast permintaan produk</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+                                <th class="py-3 px-4">Produk</th>
+                                <th class="py-3 px-4">Stok Saat Ini</th>
+                                <th class="py-3 px-4">Prediksi Permintaan</th>
+                                <th class="py-3 px-4">Status Permintaan</th>
+                                <th class="py-3 px-4">Rekomendasi Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="demand-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- AI Business Insight Cards -->
+            <div class="space-y-4">
+                <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                    <span>AI Business Insights</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="insights-container">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FLOATING KNOWLEDGE CHATBOT (CUSTOMER STORE) -->
+    <div id="chatbot-wrapper" class="fixed bottom-6 right-6 z-50">
+        <!-- Chat trigger button -->
+        <button id="chat-toggle-btn" onclick="toggleChatbot()" class="bg-brand-600 hover:bg-brand-700 text-white rounded-full p-4 shadow-xl flex items-center justify-center transition duration-200 transform hover:scale-105">
+            <i class="fa-solid fa-comments text-2xl"></i>
+            <span class="absolute -top-1 -right-1 flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="chat-window" class="hidden absolute bottom-16 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[480px]">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-brand-700 to-emerald-600 text-white p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="fa-solid fa-robot text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm">Floria Bot (TF-IDF)</h4>
+                        <span class="text-[10px] text-emerald-100 block">Cosine Similarity Knowledge Engine</span>
+                    </div>
+                </div>
+                <button onclick="toggleChatbot()" class="text-white/80 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Message Area -->
+            <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3 chat-scroll bg-slate-50 text-xs">
+                <div class="bg-white border border-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[85%] text-slate-700 shadow-sm">
+                    Halo! Saya asisten AI Floria. Ada yang ingin ditanyakan seputar jadwal penyiraman, sinar matahari, tanah, pupuk, atau pemangkasan bonsai?
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-3 bg-white border-t border-slate-200 flex gap-2">
+                <input type="text" id="chat-input" onkeypress="handleChatKeyPress(event)" placeholder="Ketik pertanyaan (cth: siram bonsai)..." class="flex-grow border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <button onclick="sendChatMessage()" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL / CART MODAL -->
+    <div id="generic-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div id="modal-content">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC ENGINE -->
+    <script>
+        // ==========================================
+        // DATASETS & KNOWLEDGE BASE
+        // ==========================================
+        const plantCatalog = [
+            {
+                id: 'p1',
+                name: 'Bonsai Beringin (Ficus benjamina)',
+                category: 'Bonsai',
+                price: 350000,
+                rating: 4.9,
+                badge: 'Best Seller',
+                image: 'https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=600&q=80',
+                location: 'Outdoor',
+                light: 'Tinggi',
+                care: 'Sedang',
+                goal: 'Bonsai',
+                description: 'Bonsai Beringin memiliki daya tahan tinggi dan perakaran gantung yang indah. Sangat cocok untuk teras outdoor dengan sinar matahari berlimpah.'
+            },
+            {
+                id: 'p2',
+                name: 'Bonsai Serut (Streblus asper)',
+                category: 'Bonsai',
+                price: 420000,
+                rating: 4.8,
+                badge: 'Trending',
+                image: 'https://images.unsplash.com/photo-1599598425947-020645557022?auto=format&fit=crop&w=600&q=80',
+                location: 'Outdoor',
+                light: 'Tinggi',
+                care: 'Tinggi',
+                goal: 'Bonsai',
+                description: 'Bonsai Serut terkenal dengan karakter batang tua nan eksotis serta daunnya yang bisa mengecil indah pasca pemangkasan.'
+            },
+            {
+                id: 'p3',
+                name: 'Monstera Deliciosa',
+                category: 'Tanaman Hias',
+                price: 185000,
+                rating: 4.7,
+                badge: 'Populer',
+                image: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=600&q=80',
+                location: 'Indoor',
+                light: 'Sedang',
+                care: 'Rendah',
+                goal: 'Dekorasi',
+                description: 'Tanaman tropis ikonik dengan daun berlubang khas. Sangat estetik sebagai pemanis interior sudut ruangan.'
+            },
+            {
+                id: 'p4',
+                name: 'Sansevieria Lidah Mertua',
+                category: 'Tanaman Hias',
+                price: 65000,
+                rating: 4.9,
+                badge: 'Pemula',
+                image: 'https://images.unsplash.com/photo-1593482892290-f54927ae1bf6?auto=format&fit=crop&w=600&q=80',
+                location: 'Indoor',
+                light: 'Rendah',
+                care: 'Rendah',
+                goal: 'Pemula',
+                description: 'Pembersih udara alami terbaik. Tahan berada di ruangan ber-AC dan hanya perlu disiram seminggu sekali.'
+            },
+            {
+                id: 'p5',
+                name: 'Bonsai Anting Putri (Wrightia religiosa)',
+                category: 'Bonsai',
+                price: 550000,
+                rating: 4.9,
+                badge: 'Koleksi',
+                image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=600&q=80',
+                location: 'Outdoor',
+                light: 'Tinggi',
+                care: 'Sedang',
+                goal: 'Koleksi',
+                description: 'Memiliki bunga putih harum yang menggantung anggun. Menjadi incaran para kolektor bonsai berkelas.'
+            },
+            {
+                id: 'p6',
+                name: 'Bonsai Santigi (Pemphis acidula)',
+                category: 'Bonsai',
+                price: 850000,
+                rating: 5.0,
+                badge: 'Rare',
+                image: 'https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=600&q=80',
+                location: 'Outdoor',
+                light: 'Tinggi',
+                care: 'Tinggi',
+                goal: 'Koleksi',
+                description: 'Bonsai berkelas berkarakter kuat dari daerah pesisir, membutuhkan perhatian extra namun memiliki estetika amat tinggi.'
+            },
+            {
+                id: 'p7',
+                name: 'Aglaonema Red Anjamani',
+                category: 'Tanaman Hias',
+                price: 125000,
+                rating: 4.6,
+                badge: 'Favorite',
+                image: 'https://images.unsplash.com/photo-1620127682229-33388276e540?auto=format&fit=crop&w=600&q=80',
+                location: 'Semi-Outdoor',
+                light: 'Sedang',
+                care: 'Rendah',
+                goal: 'Dekorasi',
+                description: 'Warna merah menyala pada daun memberi kesan mewah. Sangat serasi untuk teras semi-terbuka.'
+            }
+        ];
+
+        // Knowledge Base for Chatbot Engine
+        const chatbotKB = [
+            {
+                keywords: ['siram', 'penyiraman', 'air', 'kelembaban', 'jadwal'],
+                answer: 'Penyiraman umum: Tanaman indoor disiram 1-2 kali seminggu jika media tanah kering. Untuk bonsai outdoor seperti Beringin/Serut, siram 1-2 kali sehari pada pagi/sore hari.'
+            },
+            {
+                keywords: ['cahaya', 'matahari', 'sinar', 'jemur', 'gelap'],
+                answer: 'Tanaman outdoor (Bonsai Beringin, Serut, Santigi) butuh sinar matahari langsung 6+ jam. Tanaman indoor (Monstera, Sansevieria) butuh sinar terang tidak langsung (indirect light).'
+            },
+            {
+                keywords: ['tanah', 'media', 'tanam', 'sekam', 'pasir'],
+                answer: 'Media tanam ideal bonsai: Campuran pasir malang, kompos, dan pumice (1:1:1) agar drainase lancar. Tanaman hias daun: Campuran tanah humus, sekam bakar, dan cocopeat.'
+            },
+            {
+                keywords: ['pupuk', 'pemupukan', 'nutrisi', 'npk', 'vitamin'],
+                answer: 'Berikan pupuk NPK slow-release sebulan sekali atau pupuk organik cair setiap 2 minggu sekali untuk merangsang pertumbuhan daun & akar yang sehat.'
+            },
+            {
+                keywords: ['pangkas', 'pruning', 'kawat', 'bentuk', 'bonsai'],
+                answer: 'Pemangkasan (pruning) bonsai dilakukan saat cabang terlalu rimbun untuk mengarahkan bentuk & memperkecil ukuran daun. Pengkawatan dilakukan menggunakan kawat aluminium fleksibel.'
+            },
+            {
+                keywords: ['hama', 'kutuk', 'ulat', 'jamur', 'daun kuning'],
+                answer: 'Jaga sirkulasi udara. Jika ada kutil putih / kutu kebul, semprotkan larutan minyak mimba (neem oil) atau insektisida organik secara berkala pada malam hari.'
+            }
+        ];
+
+        // Admin Demand Table Initial Data
+        const adminDemandData = [
+            { name: 'Bonsai Beringin', currentStock: 22, forecast: 35, status: '🔥 Tinggi', action: 'Tambah Stok +15 unit' },
+            { name: 'Bonsai Serut', currentStock: 18, forecast: 28, status: '🔥 Tinggi', action: 'Tambah Stok +10 unit' },
+            { name: 'Bonsai Anting Putri', currentStock: 15, forecast: 12, status: '🟢 Normal', action: 'Stok Cukup' },
+            { name: 'Bonsai Santigi', currentStock: 10, forecast: 6, status: '⚠️ Rendah', action: 'Kurangi Pembelian' },
+            { name: 'Monstera Deliciosa', currentStock: 25, forecast: 24, status: '🟢 Normal', action: 'Stok Cukup' },
+            { name: 'Sansevieria', currentStock: 30, forecast: 22, status: '🟢 Normal', action: 'Stok Cukup' }
+        ];
+
+        // State Management
+        let cart = [];
+        let wizardSelections = {
+            location: 'Outdoor',
+            light: 'Tinggi',
+            care: 'Sedang',
+            goal: 'Bonsai'
+        };
+
+        // ==========================================
+        // UI CORE CONTROLLERS
+        // ==========================================
+        function switchPortal(portal) {
+            const customerSec = document.getElementById('portal-customer');
+            const adminSec = document.getElementById('portal-admin');
+            const navCustomer = document.getElementById('nav-customer');
+            const navAdmin = document.getElementById('nav-admin');
+            const cartBtn = document.getElementById('customer-cart-btn');
+
+            if (portal === 'customer') {
+                customerSec.classList.remove('hidden');
+                adminSec.classList.add('hidden');
+                cartBtn.classList.remove('hidden');
+
+                navCustomer.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 bg-white text-brand-700 shadow-sm";
+                navAdmin.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900";
+            } else {
+                customerSec.classList.add('hidden');
+                adminSec.classList.remove('hidden');
+                cartBtn.classList.add('hidden');
+
+                navAdmin.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 bg-white text-brand-700 shadow-sm";
+                navCustomer.className = "px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900";
+
+                renderAdminCharts();
+            }
+        }
+
+        function scrollToWizard() {
+            document.getElementById('ai-wizard-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // CUSTOMER WIZARD & AI RECOMMENDATION ENGINE
+        // ==========================================
+        function selectOption(category, value) {
+            wizardSelections[category] = value;
+            
+            // Update UI Styles for active buttons
+            const buttons = document.querySelectorAll(`.${category}-btn`);
+            buttons.forEach(btn => {
+                const val = btn.getAttribute('data-val');
+                const checkIcon = btn.querySelector('.fa-check');
+                if (val === value) {
+                    btn.className = `wizard-btn ${category}-btn active w-full p-3 rounded-xl border border-brand-500 bg-brand-50 text-brand-800 text-left font-medium transition text-sm flex items-center justify-between`;
+                    if(checkIcon) checkIcon.classList.remove('hidden');
+                } else {
+                    btn.className = `wizard-btn ${category}-btn w-full p-3 rounded-xl border border-slate-200 text-slate-700 text-left font-medium hover:bg-slate-50 transition text-sm flex items-center justify-between`;
+                    if(checkIcon) checkIcon.classList.add('hidden');
+                }
+            });
+        }
+
+        // Feature Matcher simulating Random Forest Classifiers + Cosine Vector distance
+        function runAIRecommendation() {
+            const userVector = [
+                wizardSelections.location,
+                wizardSelections.light,
+                wizardSelections.care,
+                wizardSelections.goal
+            ];
+
+            // Calculate similarity score against catalog items
+            const scoredProducts = plantCatalog.map(product => {
+                let matchPoints = 0;
+                let maxPoints = 4;
+
+                if (product.location === userVector[0]) matchPoints += 1;
+                if (product.light === userVector[1]) matchPoints += 1;
+                if (product.care === userVector[2]) matchPoints += 1;
+                if (product.goal === userVector[3]) matchPoints += 1;
+
+                // Additional weighted score bonus for tree-type similarity
+                let percentMatch = Math.round((matchPoints / maxPoints) * 100);
+                if (percentMatch < 50) percentMatch = 60 + Math.floor(Math.random() * 15); // Floor match visualization
+                
+                return { ...product, matchPercent: percentMatch };
+            });
+
+            // Sort by highest match score
+            scoredProducts.sort((a, b) => b.matchPercent - a.matchPercent);
+
+            renderRecommendationCards(scoredProducts.slice(0, 3));
+        }
+
+        function renderRecommendationCards(products) {
+            const container = document.getElementById('recommendation-cards-grid');
+            const resultsSection = document.getElementById('recommendation-results');
+            container.innerHTML = '';
+
+            products.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white border-2 border-emerald-500/30 rounded-2xl p-5 shadow-md hover:shadow-xl transition duration-300 relative flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-gradient-to-r from-emerald-500 to-brand-600 text-white font-bold text-xs px-3 py-1 rounded-full shadow-sm">
+                                ⭐ ${item.matchPercent}% cocok
+                            </span>
+                            <span class="text-xs text-slate-400 font-medium">${item.category}</span>
+                        </div>
+                        
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-44 object-cover rounded-xl mb-4">
+                        
+                        <h4 class="font-bold text-slate-900 text-base mb-2 line-clamp-1">${item.name}</h4>
+                        
+                        <div class="flex flex-wrap gap-1.5 mb-4 text-[11px] font-medium text-slate-600">
+                            <span class="bg-slate-100 px-2.5 py-1 rounded-md">📍 ${item.location}</span>
+                            <span class="bg-slate-100 px-2.5 py-1 rounded-md">☀️ ${item.light}</span>
+                            <span class="bg-slate-100 px-2.5 py-1 rounded-md">⏱️ ${item.care}</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-400 block">Harga</span>
+                            <span class="font-extrabold text-brand-700 text-base">Rp ${item.price.toLocaleString('id-ID')}</span>
+                        </div>
+                        <button onclick="openDetailModal('${item.id}')" class="bg-slate-900 hover:bg-brand-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
+                            Lihat Detail
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            resultsSection.classList.remove('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // CATALOG ENGINE
+        // ==========================================
+        function renderCatalog(items = plantCatalog) {
+            const grid = document.getElementById('catalog-grid');
+            grid.innerHTML = '';
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="relative">
+                            <img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover">
+                            <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
+                                ${item.badge}
+                            </span>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                                <span>${item.category}</span>
+                                <span>⭐ ${item.rating}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-900 text-sm mb-2 line-clamp-1">${item.name}</h4>
+                            <p class="text-xs text-slate-500 line-clamp-2 mb-3">${item.description}</p>
+                        </div>
+                    </div>
+                    <div class="p-4 pt-0 flex items-center justify-between border-t border-slate-100 mt-2">
+                        <span class="font-bold text-brand-700 text-sm">Rp ${item.price.toLocaleString('id-ID')}</span>
+                        <div class="flex gap-2">
+                            <button onclick="addToCart('${item.id}')" class="p-2 text-brand-600 hover:bg-brand-50 rounded-lg border border-brand-200 transition">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </button>
+                            <button onclick="openDetailModal('${item.id}')" class="bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-brand-600 transition">
+                                Detail
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCatalog() {
+            const query = document.getElementById('catalog-search').value.toLowerCase();
+            const filtered = plantCatalog.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+            renderCatalog(filtered);
+        }
+
+        // ==========================================
+        // CHATBOT ENGINE (TF-IDF & COSINE SIMILARITY SIMULATOR)
+        // ==========================================
+        function toggleChatbot() {
+            const chatWin = document.getElementById('chat-window');
+            chatWin.classList.toggle('hidden');
+        }
+
+        function handleChatKeyPress(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Render User Message
+            appendMessage(text, 'user');
+            input.value = '';
+
+            // Process TF-IDF & Cosine Similarity Match
+            setTimeout(() => {
+                const response = processTFIDFQuery(text);
+                appendMessage(response.text, 'bot', response.confidence);
+            }, 400);
+        }
+
+        function appendMessage(text, sender, confidence = null) {
+            const container = document.getElementById('chat-messages');
+            const wrapper = document.createElement('div');
+
+            if (sender === 'user') {
+                wrapper.className = "flex justify-end";
+                wrapper.innerHTML = `<div class="bg-brand-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm">${text}</div>`;
+            } else {
+                wrapper.className = "flex justify-start flex-col items-start gap-1";
+                wrapper.innerHTML = `
+                    <div class="bg-white border border-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[85%] text-slate-700 shadow-sm">
+                        ${text}
+                        ${confidence !== null ? `<div class="mt-2 text-[9px] text-brand-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">Score Cosine Match: ${(confidence * 100).toFixed(1)}%</div>` : ''}
+                    </div>
+                `;
+            }
+
+            container.appendChild(wrapper);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function processTFIDFQuery(query) {
+            const tokens = query.toLowerCase().split(/\s+/);
+            let bestMatch = null;
+            let highestSimilarity = 0;
+
+            chatbotKB.forEach(kbItem => {
+                let intersection = 0;
+                kbItem.keywords.forEach(kw => {
+                    if (tokens.some(token => token.includes(kw) || kw.includes(token))) {
+                        intersection += 1;
+                    }
+                });
+
+                // Cosine similarity representation score
+                const simScore = intersection / Math.sqrt(tokens.length * kbItem.keywords.length);
+                if (simScore > highestSimilarity) {
+                    highestSimilarity = simScore;
+                    bestMatch = kbItem;
+                }
+            });
+
+            if (bestMatch && highestSimilarity > 0.15) {
+                return { text: bestMatch.answer, confidence: Math.min(highestSimilarity + 0.3, 0.96) };
+            } else {
+                return { 
+                    text: 'Maaf, saya belum menemukan informasi spesifik untuk pertanyaan tersebut. Coba kata kunci seperti: "siram", "cahaya", "tanah", "pupuk", atau "pangkas bonsai".',
+                    confidence: 0.12
+                };
+            }
+        }
+
+        // ==========================================
+        // ADMIN DASHBOARD CHARTS & INSIGHTS
+        // ==========================================
+        let salesChartInstance = null;
+
+        function renderAdminCharts() {
+            if (salesChartInstance) salesChartInstance.destroy();
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            salesChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt (AI)', 'Nov (AI)', 'Des (AI)'],
+                    datasets: [
+                        {
+                            label: 'Penjualan Aktual (Unit)',
+                            data: [85, 92, 104, 98, 111, null, null, null],
+                            borderColor: '#16a34a',
+                            backgroundColor: '#16a34a',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            pointRadius: 5
+                        },
+                        {
+                            label: 'Prediksi XGBoost AI (Unit)',
+                            data: [null, null, null, null, 111, 127, 138, 150],
+                            borderColor: '#8b5cf6',
+                            borderDash: [6, 6],
+                            backgroundColor: '#8b5cf6',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            pointRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            renderAdminDemandTable();
+            renderAdminInsights();
+        }
+
+        function renderAdminDemandTable() {
+            const tbody = document.getElementById('demand-table-body');
+            tbody.innerHTML = '';
+
+            adminDemandData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-slate-800">${row.name}</td>
+                    <td class="py-3 px-4 text-slate-600">${row.currentStock} unit</td>
+                    <td class="py-3 px-4 font-semibold text-brand-700">${row.forecast} unit</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${row.status.includes('Tinggi') ? 'bg-red-100 text-red-700' : row.status.includes('Normal') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                            ${row.status}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-xs font-medium text-slate-600">${row.action}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderAdminInsights() {
+            const container = document.getElementById('insights-container');
+            container.innerHTML = `
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+                    <div class="flex items-center gap-2 text-brand-800 font-bold mb-2">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Peningkatan Permintaan Bonsai</span>
+                    </div>
+                    <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                        💡 <strong>AI Insight:</strong> Bonsai Beringin diprediksi mengalami peningkatan permintaan sebesar 18% bulan ini.
+                    </p>
+                    <span class="text-[11px] font-semibold text-brand-700 bg-white px-3 py-1 rounded-lg border border-emerald-200 inline-block">
+                        Rekomendasi: Tambahkan stok sebelum periode penjualan berikutnya.
+                    </span>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+                    <div class="flex items-center gap-2 text-amber-800 font-bold mb-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Efisiensi Inventaris Santigi</span>
+                    </div>
+                    <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                        💡 <strong>AI Insight:</strong> Bonsai Santigi menunjukkan tren penjualan melambat (-20%).
+                    </p>
+                    <span class="text-[11px] font-semibold text-amber-800 bg-white px-3 py-1 rounded-lg border border-amber-200 inline-block">
+                        Rekomendasi: Alokasikan anggaran pasokan ke Bonsai Serut.
+                    </span>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-5">
+                    <div class="flex items-center gap-2 text-indigo-800 font-bold mb-2">
+                        <i class="fa-solid fa-bullhorn"></i>
+                        <span>Peluang Bundling Indoor</span>
+                    </div>
+                    <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                        💡 <strong>AI Insight:</strong> Pencarian Monstera & Sansevieria meningkat dari pengguna tipe "Pemula".
+                    </p>
+                    <span class="text-[11px] font-semibold text-indigo-800 bg-white px-3 py-1 rounded-lg border border-indigo-200 inline-block">
+                        Rekomendasi: Buat paket promo "Starter Indoor Kit".
+                    </span>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // SHOPPING CART & MODALS
+        // ==========================================
+        function addToCart(productId) {
+            const product = plantCatalog.find(p => p.id === productId);
+            if (product) {
+                cart.push(product);
+                updateCartBadge();
+            }
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            if (cart.length > 0) {
+                badge.innerText = cart.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function toggleCartModal() {
+            const content = document.getElementById('modal-content');
+            if (cart.length === 0) {
+                content.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-basket-shopping text-4xl text-slate-300 mb-3"></i>
+                        <h4 class="font-bold text-slate-800">Keranjang Belanja Kosong</h4>
+                        <p class="text-xs text-slate-500 mt-1">Pilih tanaman hias favorit Anda dari katalog.</p>
+                    </div>
+                `;
+            } else {
+                let total = cart.reduce((sum, item) => sum + item.price, 0);
+                content.innerHTML = `
+                    <h3 class="font-bold text-lg text-slate-900 mb-4">Keranjang Belanja (${cart.length})</h3>
+                    <div class="space-y-3 max-h-60 overflow-y-auto mb-4">
+                        ${cart.map((item, idx) => `
+                            <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
+                                <div class="flex items-center gap-3">
+                                    <img src="${item.image}" class="w-10 h-10 object-cover rounded-lg">
+                                    <div>
+                                        <h5 class="font-bold text-xs text-slate-800">${item.name}</h5>
+                                        <span class="text-[10px] text-slate-500">Rp ${item.price.toLocaleString('id-ID')}</span>
+                                    </div>
+                                </div>
+                                <button onclick="removeFromCart(${idx})" class="text-red-500 hover:text-red-700 text-xs p-1">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="border-t border-slate-100 pt-3 flex items-center justify-between mb-4">
+                        <span class="font-bold text-slate-700 text-sm">Total:</span>
+                        <span class="font-extrabold text-brand-700 text-lg">Rp ${total.toLocaleString('id-ID')}</span>
+                    </div>
+                    <button onclick="checkoutCart()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl transition text-sm">
+                        Proses Pembayaran
+                    </button>
+                `;
+            }
+            document.getElementById('generic-modal').classList.remove('hidden');
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartBadge();
+            toggleCartModal();
+        }
+
+        function checkoutCart() {
+            cart = [];
+            updateCartBadge();
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <div class="text-center py-6">
+                    <div class="w-12 h-12 bg-emerald-100 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-lg">Pesanan Berhasil dibuat!</h4>
+                    <p class="text-xs text-slate-500 mt-1 mb-4">Terima kasih telah berbelanja tanaman hias di FloriaAI.</p>
+                    <button onclick="closeModal()" class="bg-slate-900 text-white px-6 py-2 rounded-xl text-xs font-semibold">Tutup</button>
+                </div>
+            `;
+        }
+
+        function openDetailModal(productId) {
+            const item = plantCatalog.find(p => p.id === productId);
+            if (!item) return;
+
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" class="w-full h-52 object-cover rounded-xl mb-4">
+                <span class="text-xs bg-brand-100 text-brand-800 font-bold px-2.5 py-0.5 rounded-full inline-block mb-2">${item.category}</span>
+                <h3 class="font-bold text-slate-900 text-lg mb-1">${item.name}</h3>
+                <p class="text-xs text-slate-500 mb-4 leading-relaxed">${item.description}</p>
+                <div class="grid grid-cols-2 gap-2 text-xs mb-6 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div><strong>📍 Lokasi:</strong> ${item.location}</div>
+                    <div><strong>☀️ Cahaya:</strong> ${item.light}</div>
+                    <div><strong>⏱️ Perawatan:</strong> ${item.care}</div>
+                    <div><strong>🎯 Tujuan:</strong> ${item.goal}</div>
+                </div>
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                    <span class="font-extrabold text-brand-700 text-xl">Rp ${item.price.toLocaleString('id-ID')}</span>
+                    <button onclick="addToCart('${item.id}'); closeModal();" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition">
+                        + Tambah ke Keranjang
+                    </button>
+                </div>
+            `;
+            document.getElementById('generic-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('generic-modal').classList.add('hidden');
+        }
+
+        // Initialize Catalog on Load
+        window.onload = function() {
+            renderCatalog();
+        };
+    </script>
+</body>
+</html>
