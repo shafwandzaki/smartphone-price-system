@@ -21,6 +21,10 @@ COLUMN_ALIASES = {
     "ram_gb": "ram", "storage_gb": "storage",
     "harga_launching": "original_price", "harga_awal": "original_price",
     "kapasitas_baterai": "battery_capacity", "processor": "processor_name",
+    # kondisi unit: nama lama/alternatif -> nama baku
+    "usia_pakai_bulan": "service_life", "masa_pakai": "service_life", "usia_pakai": "service_life",
+    "kesehatan_baterai": "battery_health",
+    "kelengkapan": "completeness", "aksesoris": "accessories", "aksesoris_bawaan": "accessories",
 }
 
 # Kolom yang tidak dipakai model (hanya informasi).
@@ -30,9 +34,9 @@ DROP_COLUMNS = ["network"]
 # bervariasi (kolom konstan, misalnya brand saat hanya iPhone, otomatis dilewati).
 NUMERIC_CANDIDATES = [
     "release_year", "ram", "storage", "battery_capacity", "original_price",
-    "usia_pakai_bulan", "kesehatan_baterai",
+    "service_life", "battery_health",
 ]
-CATEGORICAL_CANDIDATES = ["brand", "model", "processor_name", "kelengkapan", "garansi"]
+CATEGORICAL_CANDIDATES = ["brand", "model", "processor_name", "garansi", "completeness", "accessories"]
 
 # Wajib ada di dataset (dan wajib terisi per baris).
 REQUIRED_COLUMNS = ["brand", "model", "storage", "release_year", "ram", "original_price"]
@@ -43,7 +47,9 @@ SPEC_NUMERIC = ["release_year", "ram", "battery_capacity", "original_price"]
 SPEC_CATEGORICAL = ["processor_name"]
 
 # Fitur kondisi/pemakaian unit (diisi dari listing nyata, opsional).
-USAGE_FEATURES = ["usia_pakai_bulan", "kesehatan_baterai", "kelengkapan", "garansi"]
+USAGE_FEATURES = ["service_life", "battery_health", "garansi", "completeness", "accessories"]
+# Kolom Ya/Tidak (variasi penulisan seperti Ya/ya/Iya/Ada/Y diseragamkan jadi "ya"/"tidak")
+YES_NO_COLUMNS = ["garansi", "completeness", "accessories"]
 
 # Kolom opsional untuk mencegah data leakage: ID penjual/unit yang sama tidak
 # boleh terbagi ke data latih dan uji.

@@ -12,7 +12,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 import config as C
-from data_utils import key, normalize_brand, normalize_free_text, normalize_model
+from data_utils import key, normalize_brand, normalize_free_text, normalize_model, normalize_yes_no
 
 app = FastAPI(title="API Prediksi Harga Smartphone Bekas", version=C.MODEL_VERSION)
 BUNDLE = None
@@ -38,10 +38,11 @@ class PredictRequest(BaseModel):
     battery_capacity: Optional[float] = Field(default=None, gt=0)
     processor_name: Optional[str] = None
     # Opsional: kondisi unit (dipakai jika model dilatih dengan fitur ini)
-    usia_pakai_bulan: Optional[int] = Field(default=None, ge=0, le=120)
-    kesehatan_baterai: Optional[float] = Field(default=None, ge=0, le=100)
-    kelengkapan: Optional[str] = None
-    garansi: Optional[str] = None
+    service_life: Optional[int] = Field(default=None, ge=0, le=240, description="Masa pakai (BULAN)")
+    battery_health: Optional[float] = Field(default=None, ge=0, le=100, description="Kesehatan baterai (%)")
+    garansi: Optional[str] = Field(default=None, description="Ya / Tidak")
+    completeness: Optional[str] = Field(default=None, description="Kelengkapan: Ya / Tidak")
+    accessories: Optional[str] = Field(default=None, description="Aksesoris bawaan: Ya / Tidak")
 
 
 def _py(v):
@@ -121,8 +122,15 @@ def predict(req: PredictRequest):
     given.update(brand=brand, model=model_name)
     for f in ("processor_name",):
         given[f] = normalize_free_text(given.get(f))
-    for f in ("kelengkapan", "garansi"):
-        given[f] = normalize_free_text(given.get(f), lower=True)
+    for f in C.YES_NO_COLUMNS:
+        raw = given.get(f)
+        if raw is None or str(raw).strip() == "":
+            given[f] = None
+            continue
+        v = normalize_yes_no(raw)
+        if pd.isna(v):
+            raise HTTPException(422, f"Field '{f}' harus 'Ya' atau 'Tidak' (diterima: '{raw}').")
+        given[f] = v
 
     row = {}
     for f in features:
