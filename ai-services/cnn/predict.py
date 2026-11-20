@@ -1,109 +1,113 @@
 import os
 import sys
 import torch
-import numpy as np
+import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
-# 1. Konfigurasi Device & Label
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-CLASSES = ['Multi fissure', 'fissure', 'impact']
-NUM_CLASSES = len(CLASSES)
-THRESHOLD = 0.5
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "models", "best_model.pth")
 
-# 2. Re-build Arsitektur ResNet-18 & Load Bobot Terbaik
-model = models.resnet18(weights=None)
-num_ftrs = model.fc.in_features
-model.fc = torch.nn.Linear(num_ftrs, NUM_CLASSES)
+# Urutan kelas asli sesuai _classes.csv (jangan diubah urutannya)
+RAW_CLASSES = ["Multi fissure", "fissure", "impact"]
 
-model_path = os.path.join("models", "best_model.pth")
-if not os.path.exists(model_path):
-    print(f"[ERROR] File '{model_path}' tidak ditemukan! Jalankan train.py terlebih dahulu.")
-    sys.exit(1)
+# Kamus terjemahan ke Bahasa Indonesia untuk tampilan output
+LABEL_ID = {
+    "Multi fissure": "Retak Parah",
+    "fissure": "Retak Halus",
+    "impact": "Penyok / Benturan"
+}
 
-model.load_state_dict(torch.load(model_path, map_location=device))
-model = model.to(device)
-model.eval()
+# Bobot penalti maksimal untuk masing-masing jenis kerusakan
+PENALTY_WEIGHTS = {
+    "Multi fissure": 55.0,
+    "fissure": 30.0,
+    "impact": 20.0
+}
 
-# 3. Transformasi Citra
-predict_transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
+def load_model(device):
+    model = models.resnet18(weights=None)
+    model.fc = nn.Linear(model.fc.in_features, len(RAW_CLASSES))
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    model.to(device)
+    model.eval()
+    return model
 
-def determine_severity(detected_dict):
+def calculate_condition_score(probs_dict, detected_raw_labels):
     """
-    Menentukan tingkat kerusakan berdasarkan label yang terdeteksi dan skor probabilitas.
+    Menghitung skor kondisi fisik (0 - 100) dari probabilitas Sigmoid
+    dan menentukan kategori kualitas perangkat.
     """
-    num_detected = len(detected_dict)
-    
-    if num_detected == 0:
-        return "Sangat Baik"
-    
-    prob_multi = detected_dict.get('Multi fissure', 0.0)
-    prob_fissure = detected_dict.get('fissure', 0.0)
-    prob_impact = detected_dict.get('impact', 0.0)
-    
-    # Kondisi Rusak Berat
-    if num_detected >= 3 or (prob_multi >= 0.8 and prob_impact >= 0.8):
-        return "Rusak Berat"
-    
-    # Kondisi Rusak Ringan
-    if num_detected == 2:
-        return "Rusak Ringan"
-    
-    # Kondisi Sedang vs Baik
-    if num_detected == 1:
-        if 'fissure' in detected_dict and prob_fissure < 0.8:
-            return "Baik"
-        else:
-            return "Sedang"
-            
-    return "Sedang"
+    total_penalty = 0.0
+    for raw_label, prob in probs_dict.items():
+        # Penalti penuh jika terdeteksi (>= 0.5), penalti mikro (0.15) jika di bawah threshold
+        factor = 1.0 if raw_label in detected_raw_labels else 0.15
+        total_penalty += prob * PENALTY_WEIGHTS[raw_label] * factor
+
+    score = max(0.0, min(100.0, 100.0 - total_penalty))
+    score = round(score, 2)
+
+    if score >= 90.0:
+        category = "Sangat Baik"
+    elif score >= 75.0:
+        category = "Baik"
+    elif score >= 50.0:
+        category = "Sedang"
+    else:
+        category = "Rusak Berat"
+
+    return score, category
 
 def predict_image(image_path):
+    if not os.path.isabs(image_path):
+        image_path = os.path.join(BASE_DIR, image_path)
+
     if not os.path.exists(image_path):
-        print(f"[ERROR] File gambar '{image_path}' tidak ditemukan!")
-        return
+        raise FileNotFoundError(f"Gambar tidak ditemukan: {image_path}")
 
-    # Load dan Preprocess Gambar
-    image = Image.open(image_path).convert('RGB')
-    input_tensor = predict_transform(image).unsqueeze(0).to(device)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = load_model(device)
 
-    # Inferensi Prediksi
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    img = Image.open(image_path).convert("RGB")
+    input_tensor = transform(img).unsqueeze(0).to(device)
+
     with torch.no_grad():
         outputs = model(input_tensor)
         probs = torch.sigmoid(outputs).squeeze(0).cpu().numpy()
 
-    detected_dict = {}
-    print("\n" + "="*50)
-    print(f"   HASIL PREDIKSI UNSEEN IMAGE: {os.path.basename(image_path)}")
-    print("="*50)
-    
-    for i, class_name in enumerate(CLASSES):
-        prob = float(probs[i])
-        status = "TERDETEKSI" if prob >= THRESHOLD else "TIDAK TERDETEKSI"
-        print(f" - {class_name:<15} : {prob*100:6.2f}%  [{status}]")
-        if prob >= THRESHOLD:
-            detected_dict[class_name] = prob
+    probs_dict = {RAW_CLASSES[i]: float(probs[i]) for i in range(len(RAW_CLASSES))}
+    detected_raw = [label for label, p in probs_dict.items() if p >= 0.5]
+    detected_id = [LABEL_ID[label] for label in detected_raw]
+    score, category = calculate_condition_score(probs_dict, detected_raw)
 
-    severity = determine_severity(detected_dict)
+    print("\n" + "=" * 58)
+    print(f"   HASIL ANALISIS KONDISI FISIK: {os.path.basename(image_path)}")
+    print("=" * 58)
+    for raw_label, p in probs_dict.items():
+        nama_id = LABEL_ID[raw_label]
+        status = "[TERDETEKSI]" if p >= 0.5 else "[TIDAK TERDETEKSI]"
+        print(f" - {nama_id:<22} : {p*100:6.2f}%  {status}")
+    print("-" * 58)
+    print(f"KERUSAKAN TERDETEKSI  : {', '.join(detected_id) if detected_id else 'Tidak Ada (Mulus)'}")
+    print(f"SKOR KONDISI FISIK    : {score} / 100")
+    print(f"KATEGORI KUALITAS     : {category.upper()}")
+    print("=" * 58 + "\n")
 
-    print("-" * 50)
-    if detected_dict:
-        defects_str = ', '.join(detected_dict.keys())
-        print(f"CACAT TERDETEKSI  : {defects_str}")
-    else:
-        print("CACAT TERDETEKSI  : Tidak ada (Kondisi Fisik Mulus)")
-        
-    print(f"TINGKAT KERUSAKAN : {severity.upper()}")
-    print("="*50 + "\n")
+    return {
+        "detail_probabilitas": {LABEL_ID[k]: round(v * 100, 2) for k, v in probs_dict.items()},
+        "kerusakan_terdeteksi": detected_id,
+        "skor_kondisi": score,
+        "kategori_kualitas": category
+    }
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        img_path = sys.argv[1]
-    else:
-        img_path = "hp_bekas_test.jpg" 
-        
-    predict_image(img_path)
+    if len(sys.argv) < 2:
+        print("Penggunaan: python predict.py <path_gambar>")
+        sys.exit(1)
+    predict_image(sys.argv[1])
