@@ -1,1 +1,1 @@
-brand,model,release_year,ram,storage,processor_name,battery_capacity,original_price,resale_price,usia_pakai_bulan,kesehatan_baterai,kelengkapan,garansi,sumber,tanggal_pengumpulan,id_penjual
+brand,model,release_year,ram,storage,processor_name,battery_capacity,service_life,battery_health,garansi,completeness,accessories,original_price,resale_price,id_penjual,sumber,tanggal_pengumpulan

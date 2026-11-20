@@ -52,6 +52,22 @@ def normalize_free_text(v, lower=False):
     return s.lower() if lower else s
 
 
+_YES = {"ya", "y", "iya", "yes", "ada", "true", "1", "lengkap", "fullset"}
+_NO = {"tidak", "tdk", "t", "no", "n", "false", "0", "tidak ada", "tidak lengkap", "unit saja"}
+
+
+def normalize_yes_no(v):
+    """Ya/Tidak dalam berbagai tulisan -> 'ya' / 'tidak'. Tidak dikenal atau kosong -> NaN."""
+    if v is None or (not isinstance(v, str) and pd.isna(v)):
+        return np.nan
+    s = re.sub(r"\s+", " ", str(v)).strip().lower()
+    if s in _YES:
+        return "ya"
+    if s in _NO:
+        return "tidak"
+    return np.nan
+
+
 def key(s):
     """Kunci pencocokan tanpa peduli huruf besar/kecil."""
     return str(s).casefold().strip()
@@ -89,9 +105,14 @@ def clean_dataframe(df: pd.DataFrame):
     df["model"] = df["model"].map(normalize_model)
     if "processor_name" in df.columns:
         df["processor_name"] = df["processor_name"].map(normalize_free_text)
-    for c in ("kelengkapan", "garansi"):
+    unrecognized = {}
+    for c in C.YES_NO_COLUMNS:
         if c in df.columns:
-            df[c] = df[c].map(lambda v: normalize_free_text(v, lower=True))
+            raw = df[c]
+            df[c] = raw.map(normalize_yes_no)
+            bad = raw.notna() & raw.astype(str).str.strip().ne("") & df[c].isna()
+            if bad.any():
+                unrecognized[c] = sorted(raw[bad].astype(str).str.strip().unique().tolist())[:10]
 
     n0 = len(df)
     df = df.dropna(subset=C.REQUIRED_COLUMNS + [C.TARGET])
@@ -100,7 +121,8 @@ def clean_dataframe(df: pd.DataFrame):
     n1 = len(df)
     df = df.drop_duplicates().reset_index(drop=True)
     info = {"rows_raw": n0, "rows_dropped_invalid": n_invalid,
-            "rows_dropped_duplicate": n1 - len(df), "rows_clean": len(df)}
+            "rows_dropped_duplicate": n1 - len(df), "rows_clean": len(df),
+            "unrecognized_yes_no": unrecognized}
     return df, info
 
 

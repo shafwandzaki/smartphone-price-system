@@ -119,8 +119,17 @@ def main(args):
 
     warnings = []
     if not any(f in features for f in C.USAGE_FEATURES):
-        warnings.append("Dataset belum memuat fitur kondisi/pemakaian (usia pakai, kesehatan baterai, "
-                        "kelengkapan, garansi). Model hanya membedakan varian, bukan kondisi unit.")
+        warnings.append("Dataset belum memuat fitur kondisi/pemakaian (service_life, battery_health, "
+                        "garansi, completeness, accessories). Model hanya membedakan varian, bukan kondisi unit.")
+    present_usage = [f for f in C.USAGE_FEATURES if f in features]
+    if present_usage:
+        empty_share = float(df[present_usage].isna().all(axis=1).mean())
+        if empty_share > 0.2:
+            warnings.append(f"{empty_share:.0%} baris tidak punya satupun data kondisi {present_usage}; "
+                            "baris itu dianggap kondisi 'tipikal' dan bisa mengaburkan pengaruh kondisi. "
+                            "Pertimbangkan memisahkan baris lama (tanpa kondisi) dari data listing nyata.")
+    for col, vals in info.get("unrecognized_yes_no", {}).items():
+        warnings.append(f"Kolom '{col}' berisi nilai selain Ya/Tidak yang dianggap kosong: {vals}")
     per_variant = n / df.groupby(["brand", "model", "storage"]).ngroups
     if per_variant < 2:
         warnings.append("Rata-rata satu varian (brand-model-storage) hanya punya satu harga. "

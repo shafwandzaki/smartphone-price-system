@@ -39,7 +39,9 @@ Taruh di `dataset/dataset_harga.csv` (CSV UTF-8 atau Excel).
 | `brand`, `model`, `storage`, `release_year`, `ram`, `original_price` | **Wajib** | Identitas dan spesifikasi varian |
 | `resale_price` | **Wajib (target)** | Harga bekas (Rp) |
 | `processor_name`, `battery_capacity` | Opsional | Spesifikasi tambahan |
-| `usia_pakai_bulan`, `kesehatan_baterai`, `kelengkapan`, `garansi` | Opsional, **sangat disarankan** | Kondisi unit dari listing nyata. Otomatis dipakai model jika ada |
+| `service_life` | Opsional, **sangat disarankan** | Masa pakai dalam **bulan** (angka; tulisan seperti "12 bulan" juga terbaca) |
+| `battery_health` | Opsional, disarankan | Kesehatan baterai (%), boleh kosong untuk Android |
+| `garansi`, `completeness`, `accessories` | Opsional, **sangat disarankan** | Ya/Tidak. `completeness` = kelengkapan, `accessories` = aksesoris bawaan. Penulisan Ya/ya/Iya/Ada/Y diseragamkan; nilai lain dianggap kosong dan diberi peringatan |
 | `id_penjual` | Opsional | Mencegah data leakage: penjual yang sama tidak terbagi ke data latih dan uji |
 | `sumber`, `tanggal_pengumpulan` | Opsional | Dokumentasi asal data (tidak dipakai model) |
 | `network` | Diabaikan | |
@@ -68,7 +70,7 @@ Daftar brand, model, dan storage yang dikenal. Dipakai Laravel untuk mengisi dro
 Wajib: `brand`, `model`, `storage`. Field lain opsional; spesifikasi (`release_year`, `ram`, `original_price`, dll.) diisi otomatis dari katalog jika varian dikenal.
 ```json
 {"brand":"Apple","model":"iPhone 15 Pro","storage":256,
- "usia_pakai_bulan":6,"kesehatan_baterai":97,"kelengkapan":"fullset","garansi":"ada"}
+ "service_life":6,"battery_health":97,"garansi":"Ya","completeness":"Ya","accessories":"Tidak"}
 ```
 Respons 200:
 ```json
